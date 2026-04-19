@@ -9,15 +9,22 @@ const apiClient = axios.create({
   },
 });
 
-// Add token to requests if it exists
+/**
+ * INTERCEPTOR: Automatically attaches the JWT token to every request.
+ * This is crucial for moving from OTP -> Landing Page smoothly.
+ */
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  // Using 'token' as per your existing storage key
+  const token = localStorage.getItem('token'); 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
+/**
+ * AUTH API: Your existing authentication and OTP logic
+ */
 export const authAPI = {
   register: (data) => apiClient.post('/auth/register', data),
   login: (data) => apiClient.post('/auth/login', data),
@@ -30,5 +37,21 @@ export const authAPI = {
   getCurrentUser: () => apiClient.get('/auth/me'),
 };
 
+/**
+ * KYC API: New logic for your 3-step verification landing page
+ */
+export const kycAPI = {
+  // Step 1: Submit PAN details
+  submitPan: (panData) => apiClient.post('/kyc/step-1', panData),
+  
+  // Step 2: Submit Aadhaar details
+  submitAadhaar: (aadhaarData) => apiClient.post('/kyc/step-2', aadhaarData),
+  
+  // Step 3: Complete Video KYC / Final Submit
+  completeKyc: (finalData) => apiClient.post('/kyc/step-3', finalData),
+  
+  // Fetch current status to see where the user left off
+  getKycStatus: () => apiClient.get('/kyc/status'),
+};
 
 export default apiClient;

